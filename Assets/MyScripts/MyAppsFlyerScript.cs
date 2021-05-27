@@ -21,11 +21,14 @@ public class MyAppsFlyerScript : MonoBehaviour, IAppsFlyerConversionData
     public Text gcd;
     public Text deeplink;  
     public string apiSceneName;
+    public int DelaySdkStartTime = 0;
+    public int DelaySdkInitTime = 0;
 
 
     void Start()
     {
         InitAppsFlyerSDK();
+
     }
 
 private void onSDKStarted(){
@@ -41,7 +44,17 @@ private void onSDKStarted(){
 };
 }
 
- private void InitAppsFlyerSDK(){
+ void  InitAppsFlyerSDK(){
+
+ 	
+#if UNITY_IOS && !UNITY_EDITOR
+    if(useATT)
+        AppsFlyeriOS.waitForATTUserAuthorizationWithTimeoutInterval(attDuration);
+    if(disableSKAd)
+        AppsFlyeriOS.disableSKAdNetwork(true);
+
+#endif
+
     	// These fields are set from the editor so do not modify!
         //******************************//
         AppsFlyer.setIsDebug(true);
@@ -60,15 +73,21 @@ private void onSDKStarted(){
 
          
 
-#if UNITY_IOS && !UNITY_EDITOR
-    if(useATT)
-        AppsFlyeriOS.waitForATTUserAuthorizationWithTimeoutInterval(attDuration);
-    if(disableSKAd)
-        AppsFlyeriOS.disableSKAdNetwork(true);
 
-#endif
+	if(DelaySdkStartTime > 0)
+		StartCoroutine(DelaySdkStartUp());
+	else
+    	AppsFlyer.startSDK();
+}
 
+
+IEnumerator DelaySdkStartUp()  //  <-  its a standalone method
+{
+	string msg = "SDK start id delayed in " + DelaySdkStartTime + " sec" ;
+    Toast( msg);
+    yield  return new WaitForSeconds(DelaySdkStartTime);
     AppsFlyer.startSDK();
+
 }
 
 
